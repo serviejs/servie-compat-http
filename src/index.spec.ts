@@ -4,7 +4,7 @@ import { join } from 'path'
 import { createReadStream, readFileSync } from 'fs'
 import express = require('express')
 
-describe('throwback-compat-http', () => {
+describe('compat-http', () => {
   describe('writable', () => {
     it('should work like http', () => {
       const s = createServer(function (_req, res) {
