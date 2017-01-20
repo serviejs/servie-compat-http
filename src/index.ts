@@ -22,7 +22,7 @@ export class HttpRequest extends IncomingMessage {
 
     onreadable(req.stream(), this)
 
-    this.destroy = () => req.destroy()
+    this.destroy = () => req.abort()
   }
 
 }

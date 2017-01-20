@@ -15,7 +15,7 @@ describe('compat-http', () => {
       })
 
       const req = new Request({ url: '/' })
-      const res = new Response({ status: 200 })
+      const res = new Response(req, { status: 200 })
 
       return s(req, res, finalhandler(req, res)).then(() => {
         expect(req.url).toEqual('/')
@@ -31,7 +31,7 @@ describe('compat-http', () => {
       })
 
       const req = new Request({ url: '/' })
-      const res = new Response({ status: 200 })
+      const res = new Response(req, { status: 200 })
 
       return s(req, res, finalhandler(req, res)).then(() => {
         expect(req.url).toEqual('/')
@@ -49,7 +49,7 @@ describe('compat-http', () => {
       })
 
       const req = new Request({ url: '/test' })
-      const res = new Response({ status: 200 })
+      const res = new Response(req, { status: 200 })
 
       return s(req, res, finalhandler(req, res))
         .then(() => {
@@ -71,7 +71,7 @@ describe('compat-http', () => {
       })
 
       const req = new Request({ url: '/test', body: createReadStream(filename) })
-      const res = new Response({ status: 200 })
+      const res = new Response(req, { status: 200 })
 
       return s(req, res, () => Promise.resolve())
         .then(() => {
@@ -94,7 +94,7 @@ describe('compat-http', () => {
       const s = createServer(app)
 
       const req = new Request({ url: '/test?query=true' })
-      const res = new Response({ status: 200 })
+      const res = new Response(req, { status: 200 })
 
       return s(req, res, finalhandler(req, res))
         .then(() => {
