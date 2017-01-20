@@ -105,7 +105,7 @@ export function createServer (
       socket.on('readable', () => end())
 
       // Proxy the HTTP data back to the instances when ending HTTP-compat mode.
-      function end (err?: Error) {
+      function end (err?: Error, proceed?: boolean) {
         req.url = request.url
         req.method = request.method
         req.headers.object(request.headers)
@@ -115,10 +115,10 @@ export function createServer (
         res.headers.object((response as any)._headers)
         res.body = socket
 
-        return err ? reject(err) : resolve()
+        return err ? reject(err) : resolve(proceed ? next() : undefined)
       }
 
-      handler(request, response, end)
-    }).then(next)
+      handler(request, response, (err: Error) => end(err, true))
+    })
   }
 }

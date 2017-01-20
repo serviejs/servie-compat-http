@@ -17,7 +17,7 @@ describe('throwback-compat-http', () => {
       const req = new Request({ url: '/' })
       const res = new Response({ status: 200 })
 
-      return s(req, res, () => Promise.resolve()).then(() => {
+      return s(req, res, finalhandler(req, res)).then(() => {
         expect(req.url).toEqual('/')
         expect(res.status).toEqual(302)
 
@@ -33,7 +33,7 @@ describe('throwback-compat-http', () => {
       const req = new Request({ url: '/' })
       const res = new Response({ status: 200 })
 
-      return s(req, res, () => Promise.resolve()).then(() => {
+      return s(req, res, finalhandler(req, res)).then(() => {
         expect(req.url).toEqual('/')
         expect(res.status).toEqual(200)
 
@@ -51,17 +51,12 @@ describe('throwback-compat-http', () => {
       const req = new Request({ url: '/test' })
       const res = new Response({ status: 200 })
 
-      return s(req, res, () => {
-        res.status = 302
-        res.body = 'fallback'
-
-        return Promise.resolve()
-      })
+      return s(req, res, finalhandler(req, res))
         .then(() => {
           expect(req.url).toEqual('/test')
-          expect(res.status).toEqual(302)
+          expect(res.status).toEqual(404)
 
-          return res.text().then((body) => expect(body).toEqual('fallback'))
+          return res.text().then((body) => expect(body).toEqual('Cannot GET /test'))
         })
     })
   })
@@ -101,7 +96,7 @@ describe('throwback-compat-http', () => {
       const req = new Request({ url: '/test?query=true' })
       const res = new Response({ status: 200 })
 
-      return s(req, res, () => Promise.resolve())
+      return s(req, res, finalhandler(req, res))
         .then(() => {
           expect(req.url).toEqual('/test?query=true')
           expect(res.status).toEqual(201)
@@ -112,3 +107,12 @@ describe('throwback-compat-http', () => {
     })
   })
 })
+
+function finalhandler (req: Request, res: Response) {
+  return function () {
+    res.status = 404
+    res.body = `Cannot ${req.method} ${req.url}`
+
+    return Promise.resolve()
+  }
+}
