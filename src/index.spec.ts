@@ -15,9 +15,8 @@ describe('compat-http', () => {
       })
 
       const req = new Request({ url: '/' })
-      const res = new Response(req, { status: 200 })
 
-      return s(req, res, finalhandler(req, res)).then(() => {
+      return s(req, finalhandler(req)).then((res) => {
         expect(req.url).toEqual('/')
         expect(res.status).toEqual(302)
 
@@ -31,9 +30,8 @@ describe('compat-http', () => {
       })
 
       const req = new Request({ url: '/' })
-      const res = new Response(req, { status: 200 })
 
-      return s(req, res, finalhandler(req, res)).then(() => {
+      return s(req, finalhandler(req)).then((res) => {
         expect(req.url).toEqual('/')
         expect(res.status).toEqual(200)
 
@@ -44,15 +42,14 @@ describe('compat-http', () => {
 
   describe('fallback', () => {
     it('should fallback to next route', () => {
-      const s = createServer(function (_req, _res, next) {
+      const app = createServer(function (_req, _res, next) {
         return next()
       })
 
       const req = new Request({ url: '/test' })
-      const res = new Response(req, { status: 200 })
 
-      return s(req, res, finalhandler(req, res))
-        .then(() => {
+      return app(req, finalhandler(req))
+        .then((res) => {
           expect(req.url).toEqual('/test')
           expect(res.status).toEqual(404)
 
@@ -71,10 +68,9 @@ describe('compat-http', () => {
       })
 
       const req = new Request({ url: '/test', body: createReadStream(filename) })
-      const res = new Response(req, { status: 200 })
 
-      return s(req, res, () => Promise.resolve())
-        .then(() => {
+      return s(req, finalhandler(req))
+        .then((res) => {
           expect(req.url).toEqual('/test')
           expect(res.status).toEqual(200)
 
@@ -94,25 +90,24 @@ describe('compat-http', () => {
       const s = createServer(app)
 
       const req = new Request({ url: '/test?query=true' })
-      const res = new Response(req, { status: 200 })
 
-      return s(req, res, finalhandler(req, res))
-        .then(() => {
+      return s(req, finalhandler(req))
+        .then((res) => {
           expect(req.url).toEqual('/test?query=true')
           expect(res.status).toEqual(201)
           expect(res.headers.get('Content-Type')).toEqual('application/json; charset=utf-8')
 
-          return res.json().then((body) => expect(body).toEqual({ query: 'true' }))
+          return res.text().then((body) => expect(JSON.parse(body)).toEqual({ query: 'true' }))
         })
     })
   })
 })
 
-function finalhandler (req: Request, res: Response) {
+function finalhandler (req: Request) {
   return function () {
-    res.status = 404
-    res.body = `Cannot ${req.method} ${req.url}`
-
-    return Promise.resolve()
+    return Promise.resolve(new Response(req, {
+      status: 404,
+      body: `Cannot ${req.method} ${req.url}`
+    }))
   }
 }

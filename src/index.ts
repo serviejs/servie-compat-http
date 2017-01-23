@@ -1,4 +1,4 @@
-import { Request, Response, HeadersObject } from 'servie'
+import { Request, Response } from 'servie'
 import { IncomingMessage, ServerResponse } from 'http'
 import { PassThrough, Readable } from 'stream'
 
@@ -6,9 +6,6 @@ import { PassThrough, Readable } from 'stream'
  * Compatibility class for `http.IncomingMessage`.
  */
 export class HttpRequest extends IncomingMessage {
-  _req: Request
-  socket: any
-
   complete = false
   httpVersion = '1.1'
   httpVersionMajor = '1'
@@ -31,10 +28,8 @@ export class HttpRequest extends IncomingMessage {
  * Compatibility class for `http.ServerResponse`.
  */
 export class HttpResponse extends ServerResponse {
-  constructor (_req: IncomingMessage, res: Response) {
+  constructor (_req: IncomingMessage) {
     super(_req)
-
-    this.addTrailers = (headers: HeadersObject) => res.trailers.object(headers)
   }
 }
 
@@ -89,10 +84,10 @@ function onreadable (source: Readable, dest: Readable) {
 export function createServer (
   handler: (req: IncomingMessage, res: ServerResponse, next: (err?: Error) => void) => void
 ) {
-  return function (req: Request, res: Response, next: () => Promise<void>) {
-    return new Promise((resolve, reject) => {
+  return function (req: Request, next: () => Promise<Response>): Promise<Response> {
+    return new Promise<Response>((resolve, reject) => {
       const request = new HttpRequest(req)
-      const response = new HttpResponse(request, res)
+      const response = new HttpResponse(request)
 
       const socket = new PassThrough()
 
@@ -108,14 +103,17 @@ export function createServer (
       function end (err?: Error, proceed?: boolean) {
         req.url = request.url
         req.method = request.method
-        req.headers.object(request.headers)
 
-        res.status = response.statusCode
-        res.statusText = response.statusMessage
-        res.headers.object((response as any)._headers)
-        res.body = socket
+        if (err) {
+          return reject(err)
+        }
 
-        return err ? reject(err) : resolve(proceed ? next() : undefined)
+        return resolve(proceed ? next() : new Response(req, {
+          status: response.statusCode,
+          statusText: response.statusMessage,
+          headers: (response as any)._headers,
+          body: socket
+        }))
       }
 
       handler(request, response, (err: Error) => end(err, true))
