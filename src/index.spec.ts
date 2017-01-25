@@ -105,7 +105,7 @@ describe('compat-http', () => {
 
 function finalhandler (req: Request) {
   return function () {
-    return Promise.resolve(new Response(req, {
+    return Promise.resolve(new Response({
       status: 404,
       body: `Cannot ${req.method} ${req.url}`
     }))

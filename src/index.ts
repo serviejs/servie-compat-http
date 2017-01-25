@@ -108,7 +108,7 @@ export function createServer (
           return reject(err)
         }
 
-        return resolve(proceed ? next() : new Response(req, {
+        return resolve(proceed ? next() : new Response({
           status: response.statusCode,
           statusText: response.statusMessage,
           headers: (response as any)._headers,
