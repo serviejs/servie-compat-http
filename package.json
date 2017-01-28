@@ -39,7 +39,7 @@
   },
   "homepage": "https://github.com/blakeembrey/node-servie-compat-http",
   "devDependencies": {
-    "express": "^4.14.0",
+    "express": "^4.14.1",
     "jest": "^18.1.0",
     "rimraf": "^2.5.4",
     "tslint": "^4.3.1",
