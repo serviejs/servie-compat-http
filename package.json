@@ -48,6 +48,6 @@
     "typings": "^2.1.0"
   },
   "dependencies": {
-    "servie": "^0.2.0"
+    "servie": "^0.2.2"
   }
 }
