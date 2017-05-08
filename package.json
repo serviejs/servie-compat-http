@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/blakeembrey/node-servie-compat-http.git"
+    "url": "git://github.com/serviejs/servie-compat-http.git"
   },
   "keywords": [
     "request",
@@ -35,9 +35,9 @@
   },
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/blakeembrey/node-servie-compat-http/issues"
+    "url": "https://github.com/serviejs/servie-compat-http/issues"
   },
-  "homepage": "https://github.com/blakeembrey/node-servie-compat-http",
+  "homepage": "https://github.com/serviejs/servie-compat-http",
   "devDependencies": {
     "express": "^4.14.0",
     "jest": "^19.0.0",
