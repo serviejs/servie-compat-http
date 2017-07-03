@@ -6,6 +6,7 @@ import { PassThrough, Readable } from 'stream'
  * Compatibility class for `http.IncomingMessage`.
  */
 export class HttpRequest extends IncomingMessage {
+  originalUrl: string // Express.js compat.
   complete = false
   httpVersion = '1.1'
   httpVersionMajor = '1'
@@ -15,6 +16,7 @@ export class HttpRequest extends IncomingMessage {
     super({ readable: false } as any)
 
     this.url = req.url
+    this.originalUrl = req.originalUrl
     this.method = req.method
 
     onreadable(req.stream(), this)
