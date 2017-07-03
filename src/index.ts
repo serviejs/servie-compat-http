@@ -91,25 +91,17 @@ export function createServer (
       const request = new HttpRequest(req)
       const response = new HttpResponse(request)
       const socket = new PassThrough()
-      let ended = false
 
-      response.write = (chunk?: any, encoding?: any, cb?: () => void) => {
-        end()
-        return socket.write(chunk, encoding, cb)
-      }
-
-      response.end = (chunk?: any, encoding?: any, cb?: () => void) => {
-        end()
-        return socket.end(chunk, encoding, cb)
-      }
+      response.write = socket.write.bind(socket)
+      response.end = socket.end.bind(socket)
+      response.on = socket.on.bind(socket)
+      response.once = socket.once.bind(socket)
 
       response.assignSocket(socket)
+      socket.on('readable', () => end())
 
       // Proxy the HTTP data back to the instances when ending HTTP-compat mode.
       function end (err?: Error, proceed?: boolean) {
-        if (ended) return
-
-        ended = true
         req.url = request.url
         req.method = request.method
 
