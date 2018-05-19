@@ -7,6 +7,8 @@
 
 > Map Servie `Request` and `Response` instances to node.js HTTP objects.
 
+**DEPRECATED:** As an interesting experiment someone can reference.
+
 ## Installation
 
 ```
