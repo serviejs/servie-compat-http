@@ -6,12 +6,8 @@ notifications:
     on_success: never
     on_failure: change
 
-install:
-  - npm install
-  - npm install bluebird
-
 node_js:
-  - '4'
+  - '6'
   - stable
 
 after_script: "npm install coveralls@2 && cat ./coverage/lcov.info | coveralls"

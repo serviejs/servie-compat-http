@@ -1,5 +1,5 @@
-import { createServer } from './index'
-import { Request, Response } from 'servie'
+import { createServer, HttpRequest, createBody } from './index'
+import { finalhandler } from 'servie-finalhandler'
 import { join } from 'path'
 import { createReadStream, readFileSync } from 'fs'
 import express = require('express')
@@ -14,13 +14,13 @@ describe('compat-http', () => {
         res.end()
       })
 
-      const req = new Request({ url: '/' })
+      const req = new HttpRequest({ url: '/' })
 
       return s(req, finalhandler(req)).then((res) => {
         expect(req.url).toEqual('/')
-        expect(res.status).toEqual(302)
+        expect(res.statusCode).toEqual(302)
 
-        return res.text().then((body) => expect(body).toEqual('write stream'))
+        return res.body.text().then((body) => expect(body).toEqual('write stream'))
       })
     })
 
@@ -29,13 +29,13 @@ describe('compat-http', () => {
         res.end()
       })
 
-      const req = new Request({ url: '/' })
+      const req = new HttpRequest({ url: '/' })
 
       return s(req, finalhandler(req)).then((res) => {
         expect(req.url).toEqual('/')
-        expect(res.status).toEqual(200)
+        expect(res.statusCode).toEqual(200)
 
-        return res.text().then((body) => expect(body).toEqual(''))
+        return res.body.text().then((body) => expect(body).toEqual(''))
       })
     })
   })
@@ -46,14 +46,14 @@ describe('compat-http', () => {
         return next()
       })
 
-      const req = new Request({ url: '/test' })
+      const req = new HttpRequest({ url: '/test' })
 
       return app(req, finalhandler(req))
         .then((res) => {
           expect(req.url).toEqual('/test')
-          expect(res.status).toEqual(404)
+          expect(res.statusCode).toEqual(404)
 
-          return res.text().then((body) => expect(body).toEqual('Cannot GET /test'))
+          return res.body.text().then((body) => expect(body).toEqual('Cannot GET /test'))
         })
     })
   })
@@ -67,14 +67,14 @@ describe('compat-http', () => {
         req.pipe(res)
       })
 
-      const req = new Request({ url: '/test', body: createReadStream(filename) })
+      const req = new HttpRequest({ url: '/test', body: createBody(createReadStream(filename)) })
 
       return s(req, finalhandler(req))
         .then((res) => {
           expect(req.url).toEqual('/test')
-          expect(res.status).toEqual(200)
+          expect(res.statusCode).toEqual(200)
 
-          return res.text().then((body) => expect(body).toEqual(contents))
+          return res.body.text().then((body) => expect(body).toEqual(contents))
         })
     })
   })
@@ -89,25 +89,16 @@ describe('compat-http', () => {
 
       const s = createServer(app)
 
-      const req = new Request({ url: '/test?query=true' })
+      const req = new HttpRequest({ url: '/test?query=true' })
 
       return s(req, finalhandler(req))
         .then((res) => {
           expect(req.url).toEqual('/test?query=true')
-          expect(res.status).toEqual(201)
+          expect(res.statusCode).toEqual(201)
           expect(res.headers.get('Content-Type')).toEqual('application/json; charset=utf-8')
 
-          return res.text().then((body) => expect(JSON.parse(body)).toEqual({ query: 'true' }))
+          return res.body.text().then((body) => expect(JSON.parse(body)).toEqual({ query: 'true' }))
         })
     })
   })
 })
-
-function finalhandler (req: Request) {
-  return function () {
-    return Promise.resolve(new Response({
-      status: 404,
-      body: `Cannot ${req.method} ${req.url}`
-    }))
-  }
-}

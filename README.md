@@ -4,9 +4,8 @@
 [![NPM downloads](https://img.shields.io/npm/dm/servie-compat-http.svg?style=flat)](https://npmjs.org/package/servie-compat-http)
 [![Build status](https://img.shields.io/travis/serviejs/servie-compat-http.svg?style=flat)](https://travis-ci.org/serviejs/servie-compat-http)
 [![Test coverage](https://img.shields.io/coveralls/serviejs/servie-compat-http.svg?style=flat)](https://coveralls.io/r/serviejs/servie-compat-http?branch=master)
-[![Greenkeeper badge](https://badges.greenkeeper.io/serviejs/servie-compat-http.svg)](https://greenkeeper.io/)
 
-> Map Servie `Request` and `Response` instances to node.js HTTP compatible objects.
+> Map Servie `Request` and `Response` instances to node.js HTTP objects.
 
 ## Installation
 

@@ -1,25 +1,27 @@
-import { Request, Response } from 'servie'
+import { Response, createHeaders } from 'servie'
+import { HttpRequest } from 'servie-http'
+import { createBody } from 'servie/dist/body/node'
 import { IncomingMessage, ServerResponse } from 'http'
 import { PassThrough, Readable } from 'stream'
+
+export { HttpRequest, createBody }
 
 /**
  * Compatibility class for `http.IncomingMessage`.
  */
-export class HttpRequest extends IncomingMessage {
-  originalUrl: string // Express.js compat.
+export class IncomingMessageCompat extends IncomingMessage {
   complete = false
   httpVersion = '1.1'
-  httpVersionMajor = '1'
-  httpVersionMinor = '1'
+  httpVersionMajor = 1
+  httpVersionMinor = 1
 
-  constructor (req: Request) {
+  constructor (req: HttpRequest) {
     super({ readable: false } as any)
 
     this.url = req.url
-    this.originalUrl = req.originalUrl
     this.method = req.method
 
-    onreadable(req.stream(), this)
+    onreadable(req.body.stream(), this)
 
     this.destroy = () => req.abort()
   }
@@ -29,9 +31,9 @@ export class HttpRequest extends IncomingMessage {
 /**
  * Compatibility class for `http.ServerResponse`.
  */
-export class HttpResponse extends ServerResponse {
-  constructor (_req: IncomingMessage) {
-    super(_req)
+export class ServerResponseCompat extends ServerResponse {
+  constructor (req: IncomingMessage) {
+    super(req)
   }
 }
 
@@ -86,10 +88,10 @@ function onreadable (source: Readable, dest: Readable) {
 export function createServer (
   handler: (req: IncomingMessage, res: ServerResponse, next: (err?: Error) => void) => void
 ) {
-  return function (req: Request, next: () => Promise<Response>): Promise<Response> {
+  return function (req: HttpRequest, next: () => Promise<Response>): Promise<Response> {
     return new Promise<Response>((resolve, reject) => {
-      const request = new HttpRequest(req)
-      const response = new HttpResponse(request)
+      const request = new IncomingMessageCompat(req)
+      const response = new ServerResponseCompat(request)
       const socket = new PassThrough()
 
       response.write = socket.write.bind(socket)
@@ -97,25 +99,25 @@ export function createServer (
       response.on = socket.on.bind(socket)
       response.once = socket.once.bind(socket)
 
-      response.assignSocket(socket)
+      response.assignSocket(socket as any)
       socket.on('readable', () => end())
 
       // Proxy the HTTP data back to the instances when ending HTTP-compat mode.
       function end (err?: Error, proceed?: boolean) {
-        req.url = request.url
-        req.method = request.method
+        req.url = request.url || '/'
+        req.method = request.method || 'GET'
 
         if (err) return reject(err)
 
         return resolve(proceed ? next() : new Response({
-          status: response.statusCode,
-          statusText: response.statusMessage,
-          headers: (response as any)._headers,
-          body: socket
+          statusCode: response.statusCode,
+          statusMessage: response.statusMessage,
+          headers: createHeaders((response as any)._headers),
+          body: createBody(socket)
         }))
       }
 
-      handler(request, response, (err: Error) => end(err, true))
+      handler(request, response, (err?: Error) => end(err, true))
     })
   }
 }
